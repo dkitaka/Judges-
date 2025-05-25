@@ -1,63 +1,292 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Judges Scoring System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based web application for managing judges and scoring participants in competitions or events. The system provides a real-time scoreboard, admin panel for judge management, and individual judge portals for scoring participants.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-   **Public Scoreboard**: Real-time leaderboard showing participants ranked by total score
+-   **Admin Panel**: Create and manage judges with unique usernames and display names
+-   **Judge Portal**: Individual interfaces for judges to score participants (1-100 points)
+-   **Real-time Updates**: Live scoreboard updates using HTMX (refreshes every 5 seconds)
+-   **Score Management**: Judges can add new scores or update existing ones
+-   **Responsive Design**: Clean, professional interface using Tailwind CSS
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Setup Instructions
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Prerequisites
 
-## Learning Laravel
+-   PHP 8.2 or higher
+-   Composer
+-   Node.js and npm
+-   SQLite (default) or MySQL/PostgreSQL
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Installation
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+1. **Clone the repository**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    ```bash
+    git clone <repository-url>
+    cd Judges
+    ```
 
-## Laravel Sponsors
+2. **Install PHP dependencies**
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    ```bash
+    composer install
+    ```
 
-### Premium Partners
+3. **Install Node.js dependencies**
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    ```bash
+    npm install
+    ```
 
-## Contributing
+4. **Environment setup**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
 
-## Code of Conduct
+5. **Database setup**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    ```bash
+    # Create SQLite database file (if using SQLite)
+    touch database/database.sqlite
 
-## Security Vulnerabilities
+    # Run migrations
+    php artisan migrate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    # Seed the database with sample data (optional)
+    php artisan db:seed
+    ```
+
+6. **Build frontend assets**
+
+    ```bash
+    npm run build
+    # or for development
+    npm run dev
+    ```
+
+7. **Start the application**
+
+    ```bash
+    php -S localhost:8080 -t public
+    ```
+
+    The application will be available at `http://localhost:8080`
+
+### Development Mode
+
+For development with hot reloading:
+
+```bash
+composer run dev
+```
+
+This command starts the Laravel server, queue worker, logs, and Vite dev server concurrently.
+
+## Database Schema
+
+### Users Table
+
+```sql
+CREATE TABLE users (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    email_verified_at TIMESTAMP NULL,
+    password VARCHAR(255) NOT NULL,
+    remember_token VARCHAR(100) NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+```
+
+### Judges Table
+
+```sql
+CREATE TABLE judges (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    display_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+```
+
+### Scores Table
+
+```sql
+CREATE TABLE scores (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    judge_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    points INTEGER UNSIGNED NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (judge_id) REFERENCES judges(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+### Supporting Tables
+
+```sql
+-- Sessions table for session management
+CREATE TABLE sessions (
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
+    user_id BIGINT UNSIGNED NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    payload LONGTEXT NOT NULL,
+    last_activity INTEGER NOT NULL,
+    INDEX sessions_user_id_index (user_id),
+    INDEX sessions_last_activity_index (last_activity)
+);
+
+-- Cache table for application caching
+CREATE TABLE cache (
+    key VARCHAR(255) NOT NULL PRIMARY KEY,
+    value MEDIUMTEXT NOT NULL,
+    expiration INTEGER NOT NULL
+);
+
+-- Jobs table for queue processing
+CREATE TABLE jobs (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    queue VARCHAR(255) NOT NULL,
+    payload LONGTEXT NOT NULL,
+    attempts TINYINT UNSIGNED NOT NULL,
+    reserved_at INTEGER UNSIGNED NULL,
+    available_at INTEGER UNSIGNED NOT NULL,
+    created_at INTEGER UNSIGNED NOT NULL,
+    INDEX jobs_queue_index (queue)
+);
+```
+
+## Application Routes
+
+### Public Routes
+
+-   `GET /` - Public scoreboard (real-time leaderboard)
+-   `GET /scoreboard/data` - HTMX endpoint for scoreboard updates
+
+### Admin Routes
+
+-   `GET /admin` - Admin dashboard (manage judges)
+-   `GET /admin/judges/create` - Create new judge form
+-   `POST /admin/judges` - Store new judge
+-   `DELETE /admin/judges/{judge}` - Delete judge
+
+### Judge Routes
+
+-   `GET /judges/{judge}` - Judge dashboard (list of participants to score)
+-   `GET /judges/{judge}/score/{user}` - Score form for specific participant
+-   `POST /judges/{judge}/score/{user}` - Submit/update score
+
+## Assumptions Made
+
+1. **No Authentication Required**: The system assumes judges access their portals via direct URLs without login authentication. This is suitable for controlled environments or events where judge access is managed externally.
+
+2. **Score Range**: Scores are limited to 1-100 points as integers. This provides a standardized scoring system suitable for most competition formats.
+
+3. **Single Score Per Judge-User Pair**: Each judge can only give one score per participant. Updating a score replaces the previous one rather than creating multiple entries.
+
+4. **Real-time Updates**: The scoreboard updates every 5 seconds automatically, assuming this frequency is appropriate for the use case without causing excessive server load.
+
+5. **SQLite Default**: The application defaults to SQLite for simplicity in development and small-scale deployments, but can be easily configured for MySQL/PostgreSQL in production.
+
+6. **No User Registration**: Participants (users) are pre-seeded or manually added to the database rather than having a registration system.
+
+## Design Choices
+
+### Database Structure
+
+-   **Separate Judge Model**: Judges are separate from users to allow for different authentication mechanisms and role-specific functionality in the future.
+-   **Pivot Table for Scores**: The scores table acts as a pivot between judges and users, storing the relationship and score data with timestamps.
+-   **Cascade Deletes**: Foreign key constraints with CASCADE delete ensure data integrity when judges or users are removed.
+
+### Laravel/PHP Constructs Used
+
+1. **Eloquent ORM**:
+
+    - Used for clean, readable database interactions
+    - Relationships defined in models (hasMany, belongsTo, belongsToMany)
+    - Query scopes for complex data retrieval
+
+2. **Route Model Binding**:
+
+    - Automatic model injection in controller methods
+    - Cleaner URLs and automatic 404 handling for non-existent records
+
+3. **Form Request Validation**:
+
+    - Centralized validation rules in controller methods
+    - Automatic error handling and redirection
+
+4. **Blade Templating**:
+
+    - Component-based view structure with layouts
+    - Conditional rendering and loops for dynamic content
+
+5. **Database Migrations**:
+
+    - Version-controlled database schema changes
+    - Rollback capability and team collaboration support
+
+6. **Database Seeders**:
+    - Consistent test data generation
+    - Factory pattern for creating realistic sample data
+
+### Frontend Choices
+
+-   **Tailwind CSS**: Utility-first CSS framework for rapid, consistent styling
+-   **HTMX**: Lightweight library for real-time updates without complex JavaScript
+-   **Responsive Design**: Mobile-first approach with clean, professional aesthetics
+
+## Future Features (If More Time Available)
+
+### Authentication & Security
+
+-   [ ] Judge authentication system with secure login
+-   [ ] Admin authentication and role-based access control
+-   [ ] API rate limiting and CSRF protection
+-   [ ] Audit logging for score changes
+
+### Enhanced Functionality
+
+-   [ ] Multiple scoring categories/criteria per participant
+-   [ ] Weighted scoring system with different point values
+-   [ ] Score comments and feedback from judges
+-   [ ] Export scoreboard data to CSV/PDF
+-   [ ] Email notifications for score updates
+
+### User Experience
+
+-   [ ] Real-time notifications using WebSockets
+-   [ ] Mobile app for judges using Laravel API
+-   [ ] Bulk score import/export functionality
+-   [ ] Advanced filtering and search on scoreboard
+-   [ ] Historical score tracking and analytics
+
+### Administrative Features
+
+-   [ ] User management interface for adding participants
+-   [ ] Competition/event management (multiple events)
+-   [ ] Score validation rules and approval workflows
+-   [ ] Backup and restore functionality
+-   [ ] Performance monitoring and caching optimization
+
+### Technical Improvements
+
+-   [ ] API endpoints for external integrations
+-   [ ] Queue-based email notifications
+-   [ ] Redis caching for improved performance
+-   [ ] Docker containerization for easy deployment
+-   [ ] Automated testing suite (Unit, Feature, Browser tests)
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-"# dkitaka" 
-"# Judges-" 
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
